@@ -50,7 +50,7 @@ func h_PRIVMSG(conn *irc.Conn, line irc.Line) {
 	if line.Args[1] == "!quit" {
 		conn.Quit("")
 	}
-	i, _ := makecomic(line.Args[1])
+	i := makeusercomic(line.Src.Nick, line.Args[1])
 	saveToPngFile(fmt.Sprintf("comic/%d.png", cnt), i)
 	url := fmt.Sprintf("/comic/%d.png", cnt)
 

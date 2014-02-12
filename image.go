@@ -9,23 +9,38 @@ import (
 	"image/png"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
+	"path"
+	"strings"
+	"time"
 )
 
 var (
 	fontname = "gooddog-plain.regular"
-	pic      = "guy.jpg"
 
 	comicfontdata = draw2d.FontData{
 		Name:   fontname,
 		Family: draw2d.FontFamilySans,
 		Style:  draw2d.FontStyleNormal,
 	}
+
+	comicfont *truetype.Font
+
+	// username -> facename
+	userface = map[string]string{}
+
+	// facename -> image
+	faces = map[string]image.Image{}
+	// slice of facenames
+	facekeys []string
 )
 
-var comicfont *truetype.Font
-
 func init() {
+	// seed random
+	rand.Seed(time.Now().Unix())
+
+	// load font
 	fnt, err := ioutil.ReadFile(fontname + ".ttf")
 	if err != nil {
 		panic(err)
@@ -36,6 +51,21 @@ func init() {
 	}
 
 	draw2d.RegisterFont(comicfontdata, comicfont)
+
+	// load faces
+	if fis, err := ioutil.ReadDir("faces/"); err != nil {
+		panic(err)
+	} else {
+		for _, fi := range fis {
+			if i := loadFromPngFile("faces/" + fi.Name()); i != nil {
+				base := strings.TrimSuffix(fi.Name(), path.Ext(fi.Name()))
+				log.Printf("loaded face %s", base)
+
+				faces[base] = i
+				facekeys = append(facekeys, base)
+			}
+		}
+	}
 }
 
 func saveToPngFile(filePath string, m image.Image) {
@@ -70,22 +100,36 @@ func loadFromPngFile(filePath string) image.Image {
 	i, _, err := image.Decode(b)
 	if err != nil {
 		log.Println(err)
-		os.Exit(1)
+		return nil
 	}
-	log.Printf("Read %s OK.\n", filePath)
+	//log.Printf("Read %s OK.\n", filePath)
 	return i
 }
 
-func makecomic(text string) (image.Image, error) {
-	source := loadFromPngFile(pic)
-	b := source.Bounds()
-	dest := image.NewRGBA(b)
+func makeusercomic(who, text string) image.Image {
+	var facename string
+	if fname, ok := userface[who]; !ok {
+		// assign random face
+		userface[who] = facekeys[rand.Intn(len(facekeys))]
+		facename = userface[who]
+	} else {
+		facename = fname
+	}
+
+	i, _ := makecomic(text, facename)
+	return i
+}
+
+func makecomic(text, face string) (image.Image, error) {
+	facei := faces[face]
+	dest := image.NewRGBA(image.Rect(0, 0, 300, 300))
+	b := dest.Bounds()
 	gc := draw2d.NewGraphicContext(dest)
 
 	gc.SetFontData(comicfontdata)
 	gc.SetFontSize(18.0)
 
-	gc.DrawImage(source)
+	gc.DrawImage(facei)
 
 	gc.StrokeStringAt(text, float64(20), float64((b.Dy())-20))
 	gc.FillStringAt(text, float64(20), float64((b.Dy())-20))
