@@ -21,9 +21,15 @@ $(document).ready(function () {
 			url: '/new',
 			type: 'get',
 			success: function (url) {
-				cc.get_image();
+				$('html, body').animate(
+					{scrollTop: $(document).height()-$(window).height()}, 
+					100
+				);
+
 				$("#output").append("<img src='" + url + "' />");
-		 	},
+
+				cc.get_image();
+			},
 			fail: function () { cc.get_image(); }
 		});
 	};
@@ -33,7 +39,7 @@ $(document).ready(function () {
 	cc.name = localStorage['comicchat_name'];
 	if (! cc.name) {
 		cc.getName();
-	}	
+	}
 });
 
 cc.getName = function () {
