@@ -1,0 +1,57 @@
+<!doctype html>
+<head>
+  <title>HELLO CHAV</title>
+<script src="http://code.jquery.com/jquery-2.0.0b1.js"></script>
+</head>
+<script>
+var cc = {};
+
+$(document).ready(function () {
+	$("#send").click(function () {
+		var request = $.ajax({
+			url: '/send',
+			type: 'post',
+			data: JSON.stringify({ text: $("#text").val() }),
+			success: function (data) { $("#output").append(data); }
+		});
+	});
+
+	cc.get_image = function () {
+		$.ajax({
+			url: '/new',
+			type: 'get',
+			success: function (url) {
+				cc.get_image();
+				$("#output").append("<img src='" + url + "' />");
+		 	},
+			fail: function () { cc.get_image(); }
+		});
+	};
+
+	cc.get_image();
+
+	cc.name = localStorage['comicchat_name'];
+	if (! cc.name) {
+		cc.getName();
+	}	
+});
+
+cc.getName = function () {
+	$("#name").show();
+	$("#set").show();
+	$("#set").click(function () {
+		localStorage['comicchat_name'] = $("#name").val();
+		$("#name").hide();
+		$("#set").hide();
+	});
+};
+
+</script>
+<body>
+<input style="display:none" id="name" /><button style="display:none" id="set">set name</button>
+<input style="display: none" width=40 id="text" />
+<button style="display: none" id="send">send</button>
+<div id="output"></div>
+</body>
+</html>
+
