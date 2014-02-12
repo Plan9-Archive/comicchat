@@ -1,0 +1,39 @@
+<!doctype html>
+<head>
+  <title>HELLO CHAV</title>
+<script src="http://code.jquery.com/jquery-2.0.0b1.js"></script>
+</head>
+<script>
+$(document).ready(function () {
+	$("#send").click(function () {
+		var request = $.ajax({
+			url: '/send',
+			type: 'post',
+			data: JSON.stringify({ text: $("#text").val() }),
+			success: function (data) { $("#output").append(data); }
+		});
+	});
+
+	var get_image = function () {
+		//alert ("Sending AJAX request");
+		$.ajax({
+			url: '/new',
+			type: 'get',
+			success: function (url) {
+				get_image();
+				$("#output").append("<img src='" + url + "' />");
+		 	      },
+			fail: function () { get_image(); }
+		});
+	};
+
+	get_image();
+});
+</script>
+<body>
+<input style="display: none" width=40 id="text" />
+<button style="display: none" id="send">send</button>
+<div id="output"></div>
+</body>
+</html>
+

@@ -9,8 +9,9 @@ import (
 
 func dohttp() {
 	http.HandleFunc("/new", newimagehandler)
+	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("static/"))))
 	http.Handle("/comic/", http.StripPrefix("/comic/", http.FileServer(http.Dir("comic/"))))
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":4005", nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
 }
