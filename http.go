@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/bitly/go-notify"
 	"github.com/kballard/goirc/irc"
+	"html/template"
 	"log"
 	"math/rand"
 	"net/http"
@@ -55,10 +56,17 @@ func (w *WebClient) loggedin(conn *irc.Conn, line irc.Line) {
 
 func (w *WebClient) reader() {
 	var err error
+
 	w.irc, err = irc.Connect(w.config)
 	if err != nil {
 		w.ws.Close()
 	}
+
+	defer func() {
+		w.irc.Quit("disconnected")
+		w.ws.Close()
+	}()
+
 	for {
 		var m WebClientMessage
 		err = websocket.JSON.Receive(w.ws, &m)
@@ -81,6 +89,7 @@ func (w *WebClient) reader() {
 		case "connect":
 		}
 	}
+
 }
 
 func (w *WebClient) writer() {
@@ -103,12 +112,31 @@ loop:
 	}
 }
 
+var indextmpl *template.Template
+
 func dohttp() {
+	//create a new template
+	indextmpl = template.Must(template.New("index.tpl").ParseFiles("template/index.tpl"))
+
+	http.HandleFunc("/", indexhandler)
 	http.Handle("/new", websocket.Handler(newimagehandler))
-	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("static/"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
 	http.Handle("/comic/", http.StripPrefix("/comic/", http.FileServer(http.Dir("comic/"))))
 	if err := http.ListenAndServe(":8899", nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
+	}
+}
+
+type Page struct {
+	Faces []string
+}
+
+func indexhandler(w http.ResponseWriter, r *http.Request) {
+	page := Page{
+		Faces: facekeys,
+	}
+	if err := indextmpl.Execute(w, page); err != nil {
+		log.Printf("%s", err)
 	}
 }
 
