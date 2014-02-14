@@ -21,5 +21,5 @@ func newimagehandler(c http.ResponseWriter, req *http.Request) {
 	notify.Start("newimage", imgurlchan)
 	defer notify.Stop("newimage", imgurlchan)
 
-	fmt.Fprintf(c, "%s\n", <-imgurlchan)
+	fmt.Fprintf(c, "%s", <-imgurlchan)
 }

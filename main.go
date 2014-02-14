@@ -62,8 +62,6 @@ func h_PRIVMSG(conn *irc.Conn, line irc.Line) {
 
 func h_ACTION(conn *irc.Conn, line irc.Line) {
 	log.Printf("[%s] %s %s\n", line.Dst, line.Src, line.Args[0])
-
-	// /me che switches image to che
 	f := strings.Fields(line.Args[0])
 	if _, ok := faces[f[0]]; ok {
 		userface[line.Src.Nick] = f[0]
