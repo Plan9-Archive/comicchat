@@ -124,15 +124,30 @@ func makecomic(text, face string) (image.Image, error) {
 	facei := faces[face]
 	dest := image.NewRGBA(image.Rect(0, 0, 300, 300))
 	b := dest.Bounds()
+
+	//lines := image.NewRGBA(image.Rect(0, 0, 300, 300))
 	gc := draw2d.NewGraphicContext(dest)
 
 	gc.SetFontData(comicfontdata)
-	gc.SetFontSize(18.0)
+	gc.SetFontSize(24.0)
 
 	gc.DrawImage(facei)
 
-	gc.StrokeStringAt(text, float64(20), float64((b.Dy())-20))
-	gc.FillStringAt(text, float64(20), float64((b.Dy())-20))
+	x, y := 20.0, float64(b.Dy())-40.0
+	sc := bufio.NewScanner(strings.NewReader(text))
+	sc.Split(bufio.ScanWords)
+	for sc.Scan() {
+		line := sc.Text()
+		gc.StrokeStringAt(line + " ", x, y)
+		x += gc.FillStringAt(line + " ", x, y)
+		if x > float64(b.Dx()) {
+			x = 20.0
+			y += 20.0
+		}
+	}
+
+//	gc.StrokeStringAt(text, float64(20), float64((b.Dy())-20))
+//	gc.FillStringAt(text, float64(20), float64((b.Dy())-20))
 
 	return dest, nil
 }
