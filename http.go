@@ -59,6 +59,7 @@ func (w *WebClient) reader() {
 
 	w.irc, err = irc.Connect(w.config)
 	if err != nil {
+		log.Printf("%s", err)
 		w.ws.Close()
 	}
 
