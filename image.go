@@ -5,6 +5,8 @@ import (
 	"code.google.com/p/draw2d/draw2d"
 	"code.google.com/p/freetype-go/freetype/truetype"
 	"image"
+	"image/color"
+	"image/draw"
 	_ "image/jpeg"
 	"image/png"
 	"io/ioutil"
@@ -120,34 +122,106 @@ func makeusercomic(who, text string) image.Image {
 	return i
 }
 
-func makecomic(text, face string) (image.Image, error) {
-	facei := faces[face]
-	dest := image.NewRGBA(image.Rect(0, 0, 300, 300))
-	b := dest.Bounds()
+func GetFontHeight(fd draw2d.FontData, size float64) (height float64) {
+	font := draw2d.GetFont(fd)
+	fupe := font.FUnitsPerEm()
+	bounds := font.Bounds(fupe)
+	height = float64(bounds.YMax-bounds.YMin) * size / float64(fupe)
+	return
+}
+func RenderString(text string, fd draw2d.FontData, size float64, fill color.Color) (buffer image.Image) {
 
-	//lines := image.NewRGBA(image.Rect(0, 0, 300, 300))
-	gc := draw2d.NewGraphicContext(dest)
+	const stretchFactor = 1.2
 
-	gc.SetFontData(comicfontdata)
-	gc.SetFontSize(24.0)
+	height := GetFontHeight(fd, size) * stretchFactor
+	widthMax := float64(len(text)) * size
 
-	gc.DrawImage(facei)
+	buf := image.NewRGBA(image.Rectangle{
+		Min: image.Point{0, 0},
+		Max: image.Point{int(widthMax + 1), int(height + 1)},
+	})
 
-	x, y := 20.0, float64(b.Dy())-40.0
-	sc := bufio.NewScanner(strings.NewReader(text))
-	sc.Split(bufio.ScanWords)
-	for sc.Scan() {
-		line := sc.Text()
-		gc.StrokeStringAt(line + " ", x, y)
-		x += gc.FillStringAt(line + " ", x, y)
-		if x > float64(b.Dx()) {
-			x = 20.0
-			y += 20.0
+	gc := draw2d.NewGraphicContext(buf)
+	gc.Translate(0, height/stretchFactor)
+	gc.SetFontData(fd)
+	gc.SetFontSize(size)
+	gc.SetStrokeColor(color.Black)
+	gc.SetFillColor(fill)
+	width := gc.FillStringAt(text, 1, 1)
+	gc.StrokeStringAt(text, 1, 1)
+
+	buffer = buf.SubImage(image.Rectangle{
+		Min: image.Point{0, 0},
+		Max: image.Point{int(width + 1), int(height + 1)},
+	})
+
+	return
+}
+
+// turn a string into a slice of strings based on a width limit
+// TODO: make utf8-safe
+func wrap(str string, width int) []string {
+	var out []string
+
+	lines := strings.Split(str, "\n")
+
+	for _, l := range lines {
+
+		words := strings.Split(l, " ")
+		if len(words) == 0 {
+			return out
 		}
+
+		// current line we are making
+		current := words[0]
+
+		// # spaces left before the end
+		remaining := width - len(current)
+
+		for _, word := range words[1:] {
+			if len(word)+1 > remaining {
+				out = append(out, current)
+				current = word
+				remaining = width - len(word)
+			} else {
+				current += " " + word
+				remaining -= 1 + len(word)
+			}
+		}
+
+		out = append(out, current)
 	}
 
-//	gc.StrokeStringAt(text, float64(20), float64((b.Dy())-20))
-//	gc.FillStringAt(text, float64(20), float64((b.Dy())-20))
+	return out
+}
+
+var iRect = image.Rect(0, 0, 300, 300)
+
+func makecomic(text, face string) (image.Image, error) {
+	facei := faces[face]
+	dest := image.NewRGBA(iRect)
+	b := iRect
+
+	draw2d.DrawImage(facei, dest, draw2d.NewIdentityMatrix(), draw.Over, draw2d.BilinearFilter)
+
+	size := 24.0
+	lines := wrap(text, 25)
+	height := GetFontHeight(comicfontdata, size)
+	var ilines []image.Image
+	for _, l := range lines {
+		ilines = append(ilines, RenderString(l, comicfontdata, size, color.White))
+	}
+
+	tr := draw2d.NewIdentityMatrix()
+	tr.Translate(25.0, float64(b.Dy())-10.0)
+	tr.Translate(0, -float64(len(ilines))*height)
+	for _, i := range ilines {
+		draw2d.DrawImage(i, dest, tr, draw.Over, draw2d.BilinearFilter)
+		tr.Translate(0, height)
+	}
+
+	//	gc.StrokeStringAt(text, float64(20), float64((b.Dy())-20))
+	//	gc.FillStringAt(text, float64(20), float64((b.Dy())-20))
 
 	return dest, nil
 }
