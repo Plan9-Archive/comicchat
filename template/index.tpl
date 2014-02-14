@@ -6,9 +6,6 @@
 	<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 	<style type="text/css">
-	body {
-		padding-bottom:100px;
-	}
 	</style>
 
 	<script>
@@ -28,6 +25,12 @@
 		if (window["WebSocket"]) {
 			cc.conn = new WebSocket(new_uri);
 			cc.conn.onclose = function(evt) {
+				$("#status").removeClass("btn-info").removeClass("btn-success").
+					addClass("btn-danger").html("connection broke");
+			}
+			cc.conn.onerror = function(evt) {
+				$("#status").removeClass("btn-info").removeClass("btn-success").
+					addClass("btn-danger").html("error: " + evt.data);
 			}
 			cc.conn.onmessage = function(evt) {
 				msg = JSON.parse(evt.data);
@@ -36,10 +39,16 @@
 					$("#output").append("<img src='" + msg.Message + "' />");
 
 					$('html, body').animate(
-					{scrollTop: $('#output').height()},
+					{scrollTop: $('#output').height() + ($("#navbar").height()*2)},
 					100
 					);
 
+					break;
+				case "connected":
+					$("#status").removeClass("btn-info");
+					$("#status").removeClass("btn-danger");
+					$("#status").addClass("btn-success");
+					$("#status").html("connection ok!");
 					break;
 				}
 			}
@@ -103,25 +112,35 @@
 </script>
 </head>
 <body>
-<div id="output"></div>
+<div id="output" style="padding-bottom: 50px;"></div>
 <!--
 <input style="display:none" id="name" /><button style="display:none" id="set">set name</button>
 -->
-<nav class="navbar navbar-default navbar-left navbar-fixed-bottom" role="navigation">
-	<form class="form-inline">
-		<input type="text" class="form-control" width=80 id="text">
-		<button id="send" class="btn btn-default">send</button>
+<nav id="navbar" class="navbar navbar-default navbar-left navbar-fixed-bottom" role="navigation">
+	<div class="container-fluid">
+		<form class="form-inline">
+			<div class="form-group">
+				<input type="text" class="form-control" id="text">
+				<button id="send" class="btn btn-primary">send</button>
+			</div>
+			<div class="form-group">
+				<label class="sr-only" for="face">face:</label>
+				<select id="face" class="btn btn-default">
+				{{range .Faces}}
+					<option value="{{.}}">{{.}}</option>
+				{{end}}
+				</select>
+			</div>
 
-		<label for="face">face:</label>
-		<select id="face" class="btn btn-default">
-		{{range .Faces}}
-			<option value="{{.}}">{{.}}</option>
-		{{end}}
-		</select>
-
-		<input type="text" class="form-control" width=80 id="nick">
-		<button id="setnick" class="btn btn-default">set nick</button>
-	</form>
+			<div class="form-group">
+				<input type="text" class="form-control" id="nick">
+				<button id="setnick" class="btn btn-primary">set nick</button>
+			</div>
+			<div class="form-group pull-right">
+				<button id="status" class="btn btn-info navbar-right">connecting...</button>
+			</div>
+		</form>
+	</div>
 </nav>
 </body>
 </html>

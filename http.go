@@ -63,6 +63,10 @@ func (w *WebClient) reader() {
 		w.ws.Close()
 	}
 
+	var m WebClientMessage
+	m.Type = "connected"
+	websocket.JSON.Send(w.ws, &m)
+
 	defer func() {
 		w.irc.Quit("disconnected")
 		w.ws.Close()
