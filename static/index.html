@@ -18,30 +18,33 @@ $(document).ready(function () {
 		});
 	});
 
-	cc.get_image = function () {
-		$.ajax({
-			url: '/new',
-			type: 'get',
-			complete: function (r, status) {
-				if(status=="success") {
-					$('html, body').animate(
-						{scrollTop: $(document).height()-$(window).height()}, 
-						100
-					);
-
-					$("#output").append("<img src='" + r.responseText + "' />");
-				}
-
-				cc.get_image();
-			},
-		});
-	};
-
-	cc.get_image();
-
 	cc.name = localStorage['comicchat_name'];
 	if (! cc.name) {
 		cc.getName();
+
+	// image urls over websocket
+	var loc = window.location, new_uri;
+	if (loc.protocol === "https:") {
+		new_uri = "wss:";
+	} else {
+		new_uri = "ws:";
+	}
+	new_uri += "//" + loc.host;
+	new_uri += loc.pathname + "new";
+
+	if (window["WebSocket"]) {
+		conn = new WebSocket(new_uri);
+		conn.onclose = function(evt) {
+		}
+		conn.onmessage = function(evt) {
+			newurl = JSON.parse(evt.data);
+			$('html, body').animate(
+				{scrollTop: $(document).height()-$(window).height()}, 
+				100
+			);
+
+			$("#output").append("<img src='" + newurl.Url + "' />");
+		}
 	}
 });
 
