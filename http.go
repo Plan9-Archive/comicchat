@@ -117,12 +117,7 @@ loop:
 	}
 }
 
-var indextmpl *template.Template
-
 func dohttp() {
-	//create a new template
-	indextmpl = template.Must(template.New("index.tpl").ParseFiles("template/index.tpl"))
-
 	http.HandleFunc("/", indexhandler)
 	http.Handle("/new", websocket.Handler(newimagehandler))
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
@@ -137,6 +132,9 @@ type Page struct {
 }
 
 func indexhandler(w http.ResponseWriter, r *http.Request) {
+	//create a new template
+	indextmpl := template.Must(template.New("index.tpl").ParseFiles("template/index.tpl"))
+
 	page := Page{
 		Faces: facekeys,
 	}
