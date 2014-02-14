@@ -12,6 +12,9 @@
 	var cc = {};
 
 	cc.connect = function() {
+		$("#status").removeClass("btn-danger").removeClass("btn-success").
+			addClass("btn-info").html("connecting...");
+
 		// image urls over websocket
 		var loc = window.location, new_uri;
 		if (loc.protocol === "https:") {
@@ -27,6 +30,7 @@
 			cc.conn.onclose = function(evt) {
 				$("#status").removeClass("btn-info").removeClass("btn-success").
 					addClass("btn-danger").html("connection broke");
+					window.setTimeout(cc.connect(), 1000);
 			}
 			cc.conn.onerror = function(evt) {
 				$("#status").removeClass("btn-info").removeClass("btn-success").
