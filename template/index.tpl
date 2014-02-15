@@ -28,15 +28,18 @@
 		if (window["WebSocket"]) {
 			cc.conn = new WebSocket(new_uri);
 			cc.conn.onclose = function(evt) {
+				console.log("onclose " + evt.data);
 				$("#status").removeClass("btn-info").removeClass("btn-success").
 					addClass("btn-danger").html("connection broke");
-					window.setTimeout(cc.connect(), 1000);
+					window.setTimeout(cc.connect(), 5000);
 			}
 			cc.conn.onerror = function(evt) {
+				console.log("onerror " + evt.data);
 				$("#status").removeClass("btn-info").removeClass("btn-success").
 					addClass("btn-danger").html("error: " + evt.data);
 			}
 			cc.conn.onmessage = function(evt) {
+				console.log("onmessage " + evt.data);
 				msg = JSON.parse(evt.data);
 				switch(msg.Type) {
 				case "newimage":
@@ -70,6 +73,7 @@
 	};
 
 	cc.send = function(typ, msg) {
+		console.log("send " + typ + " " + msg);
 		var cmsg = {};
 		cmsg.Type = typ;
 		cmsg.Message = msg;
@@ -123,25 +127,35 @@
 <nav id="navbar" class="navbar navbar-default navbar-left navbar-fixed-bottom" role="navigation">
 	<div class="container-fluid">
 		<form class="form-inline">
-			<div class="form-group">
-				<input type="text" class="form-control" id="text">
-				<button id="send" class="btn btn-primary">send</button>
+			<div class="col-lg-6">
+				<div class="input-group">
+					<input type="text" class="form-control input-xlarge" id="text" placeholder="enter text">
+					<span class="input-group-btn">
+						<button id="send" class="btn btn-primary">send</button>
+					</span>
+				</div>
 			</div>
-			<div class="form-group">
-				<label class="sr-only" for="face">face:</label>
-				<select id="face" class="btn btn-default">
-				{{range .Faces}}
-					<option value="{{.}}">{{.}}</option>
-				{{end}}
-				</select>
+			<div class="col-lg-1">
+				<div class="input-group">
+					<label class="sr-only" for="face">face:</label>
+					<select id="face" class="btn btn-default">
+					{{range .Faces}}
+						<option value="{{.}}">{{.}}</option>
+					{{end}}
+					</select>
+				</div>
 			</div>
 
+<!--
 			<div class="form-group">
 				<input type="text" class="form-control" id="nick">
 				<button id="setnick" class="btn btn-primary">set nick</button>
 			</div>
-			<div class="form-group pull-right">
-				<button id="status" class="btn btn-info navbar-right">connecting...</button>
+-->
+			<div class="col-lg-offset-1 col-lg-1">
+				<div class="input-group pull-right">
+					<button id="status" class="btn btn-info navbar-right">connecting...</button>
+				</div>
 			</div>
 		</form>
 	</div>
