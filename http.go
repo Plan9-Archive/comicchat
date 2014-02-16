@@ -19,6 +19,10 @@ const (
 	channel = "#comicchat"
 )
 
+var (
+	nusers int32 = 0
+)
+
 type WebClientMessage struct {
 	Type    string
 	Message string
@@ -116,7 +120,7 @@ func (w *WebClient) reader() {
 	}
 	w.mu.Unlock()
 
-	w.Send("connected", "")
+	w.Send("connected", fmt.Sprintf("%d", atomic.LoadInt32(&nusers)))
 
 	defer func() {
 		w.irc.Quit("disconnected")
@@ -205,6 +209,8 @@ func websockethandler(w http.ResponseWriter, r *http.Request) {
 	websocket.Handler(func(ws *websocket.Conn) {
 		wc := NewWebClient(rem, ws)
 		log.Printf("%s connected", wc)
+		atomic.AddInt32(&nusers, 1)
+		defer atomic.AddInt32(&nusers, -1)
 		go wc.writer()
 		wc.reader()
 		log.Printf("%s disconnected", wc)
