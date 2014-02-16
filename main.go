@@ -9,11 +9,12 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	quit := make(chan bool, 1)
 	config := irc.Config{
 		Host: "chat.freenode.net",
 
-		Nick:     "comicchat",
+		Nick:     "maozedong",
 		User:     "comicchat",
 		RealName: "comicchat",
 

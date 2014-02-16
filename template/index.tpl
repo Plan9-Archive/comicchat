@@ -28,7 +28,7 @@
 		if (window["WebSocket"]) {
 			cc.conn = new WebSocket(new_uri);
 			cc.conn.onclose = function(evt) {
-				console.log("onclose " + evt.data);
+				console.log("onclose " + evt.code);
 				$("#status").removeClass("btn-info").removeClass("btn-success").
 					addClass("btn-danger").html("connection broke");
 					window.setTimeout(cc.connect(), 5000);
@@ -42,6 +42,9 @@
 				console.log("onmessage " + evt.data);
 				msg = JSON.parse(evt.data);
 				switch(msg.Type) {
+				case "ping":
+					cc.send("pong", msg.Message);
+					break;
 				case "newimage":
 					$("#output").append("<img src='" + msg.Message + "' />");
 
@@ -126,10 +129,10 @@
 -->
 <nav id="navbar" class="navbar navbar-default navbar-left navbar-fixed-bottom" role="navigation">
 	<div class="container-fluid">
-		<form class="form-inline">
-			<div class="col-lg-6">
+		<form class="navbar-form">
+			<div class="col-lg-5 col-lg-offset-1">
 				<div class="input-group">
-					<input type="text" class="form-control input-xlarge" id="text" placeholder="enter text">
+					<input type="text" class="form-control" id="text" placeholder="enter text">
 					<span class="input-group-btn">
 						<button id="send" class="btn btn-primary">send</button>
 					</span>
@@ -152,12 +155,12 @@
 				<button id="setnick" class="btn btn-primary">set nick</button>
 			</div>
 -->
-			<div class="col-lg-offset-1 col-lg-1">
-				<div class="input-group pull-right">
-					<button id="status" class="btn btn-info navbar-right">connecting...</button>
-				</div>
-			</div>
 		</form>
+		<div class="col-lg-offset-1 col-lg-1">
+			<div class="input-group pull-right">
+				<button id="status" class="btn btn-info disabled">connecting...</button>
+			</div>
+		</div>
 	</div>
 </nav>
 </body>
