@@ -2,11 +2,8 @@ package main
 
 import (
 	"bufio"
-	"code.google.com/p/draw2d/draw2d"
-	"code.google.com/p/freetype-go/freetype/truetype"
 	"image"
 	"image/color"
-	"image/draw"
 	_ "image/jpeg"
 	"image/png"
 	"io/ioutil"
@@ -16,6 +13,12 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/golang/freetype/truetype"
+	"github.com/llgcode/draw2d"
+	"github.com/llgcode/draw2d/draw2dimg"
+	"golang.org/x/image/draw"
+	"golang.org/x/image/math/fixed"
 )
 
 var (
@@ -125,8 +128,8 @@ func makeusercomic(who, text string) image.Image {
 func GetFontHeight(fd draw2d.FontData, size float64) (height float64) {
 	font := draw2d.GetFont(fd)
 	fupe := font.FUnitsPerEm()
-	bounds := font.Bounds(fupe)
-	height = float64(bounds.YMax-bounds.YMin) * size / float64(fupe)
+	bounds := font.Bounds(fixed.Int26_6(fupe))
+	height = float64(bounds.Max.Y-bounds.Min.Y) * size / float64(fupe)
 	return
 }
 func RenderString(text string, fd draw2d.FontData, size float64, fill color.Color) (buffer image.Image) {
@@ -141,7 +144,7 @@ func RenderString(text string, fd draw2d.FontData, size float64, fill color.Colo
 		Max: image.Point{int(widthMax + 1), int(height + 1)},
 	})
 
-	gc := draw2d.NewGraphicContext(buf)
+	gc := draw2dimg.NewGraphicContext(buf)
 	gc.Translate(0, height/stretchFactor)
 	gc.SetFontData(fd)
 	gc.SetFontSize(size)
@@ -202,7 +205,7 @@ func makecomic(text, face string) (image.Image, error) {
 	dest := image.NewRGBA(iRect)
 	b := iRect
 
-	draw2d.DrawImage(facei, dest, draw2d.NewIdentityMatrix(), draw.Over, draw2d.BilinearFilter)
+	draw2dimg.DrawImage(facei, dest, draw2d.NewIdentityMatrix(), draw.Over, draw2dimg.BilinearFilter)
 
 	size := 24.0
 	lines := wrap(text, 25)
@@ -216,7 +219,7 @@ func makecomic(text, face string) (image.Image, error) {
 	tr.Translate(25.0, float64(b.Dy())-10.0)
 	tr.Translate(0, -float64(len(ilines))*height)
 	for _, i := range ilines {
-		draw2d.DrawImage(i, dest, tr, draw.Over, draw2d.BilinearFilter)
+		draw2dimg.DrawImage(i, dest, tr, draw.Over, draw2dimg.BilinearFilter)
 		tr.Translate(0, height)
 	}
 
